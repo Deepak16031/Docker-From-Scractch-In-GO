@@ -1,8 +1,13 @@
+//go:build linux
+// +build linux
+
 package main
 
 import (
 	"errors"
 	"fmt"
+	"syscall"
+
 	// Uncomment this block to pass the first stage!
 	"os"
 	"os/exec"
@@ -28,6 +33,9 @@ func runCommandInSandBox(command string, JailDir string, args []string) {
 	chrootArgs := []string{JailDir, command}
 	chrootArgs = append(chrootArgs, args...)
 	cmd := exec.Command("chroot", chrootArgs...)
+	cmd.SysProcAttr = &syscall.SysProcAttr{
+		Cloneflags: syscall.CLONE_NEWUTS | syscall.CLONE_NEWPID,
+	}
 	cmd.Stdin = os.Stdin
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
